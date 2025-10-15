@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Defend the Code Keep — Game of Thrones Edition</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#05060a;--panel:rgba(6,12,20,0.6);--accent:#9fe1ff;--muted:#b7c6d0}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family: 'Cinzel', 'Courier New', Courier, monospace;background:#000;color:#e6eef6}
+    .wrap{max-width:1100px;margin:12px auto;padding:16px}
+    header{display:flex;align-items:center;gap:16px}
+    .logo{width:84px;height:84px;border-radius:12px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 10px 30px rgba(0,0,0,.8));}
+    h2{margin:0 0 8px 0;font-weight:700}
+
+    /* Game area */
+    .game-area{position:relative;height:640px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.04)}
+    .bg{position:absolute;inset:0;background-image: url('sandbox:/mnt/data/58b1cfe7390559cf18edc17a4e2bc111.jpg');background-size:cover;background-position:center;filter:brightness(0.35) contrast(1.05);}
+    .frost{position:absolute;inset:0;background:linear-gradient(180deg, rgba(2,8,15,0.25), rgba(2,8,15,0.6));pointer-events:none}
+    .mist{pointer-events:none;position:absolute;inset:0;background-image:radial-gradient(circle at 20% 10%, rgba(255,255,255,0.02), transparent 8%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.02), transparent 12%)}
+
+    .hud{position:absolute;top:18px;left:18px;display:flex;gap:12px;z-index:30}
+    .hud .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:10px 14px;border-radius:10px;backdrop-filter: blur(4px);min-width:140px;border:1px solid rgba(255,255,255,0.03)}
+    .hud .card strong{display:block;font-size:20px;color:var(--accent);font-family: 'Cinzel', serif}
+
+    .bugs-layer{position:absolute;inset:0;pointer-events:none;z-index:25}
+    .bug{position:absolute;padding:8px 14px;border-radius:22px;background:linear-gradient(90deg, rgba(150,220,255,0.06), rgba(60,140,200,0.12));backdrop-filter: blur(3px);border:1px solid rgba(159,225,255,0.12);font-weight:700;pointer-events:auto;color:#dff6ff;text-shadow:0 6px 18px rgba(0,0,0,.6);font-family:'Cinzel',serif;letter-spacing:0.6px}
+    .bug.common{background:linear-gradient(90deg, rgba(120,190,230,0.06), rgba(30,110,160,0.08));}
+    .bug.syntax{background:linear-gradient(90deg, rgba(200,230,255,0.04), rgba(110,170,200,0.08));}
+    .bug.mem{background:linear-gradient(90deg, rgba(220,240,255,0.03), rgba(150,210,235,0.06));}
+
+    .castle{position:absolute;left:0;right:0;bottom:0;height:140px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;z-index:20}
+    .castle .bar{height:14px;width:56%;background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.02)}
+    .castle .bar .fill{height:100%;width:100%;background:linear-gradient(90deg,#8fd7ff,#5aa8f0)}
+
+    .center-panel{position:absolute;left:50%;transform:translateX(-50%);top:50%;translate:0 -50%;text-align:center;z-index:35}
+    .start-screen, .end-screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(2,6,10,0.45),rgba(2,6,10,0.75));z-index:40}
+    .panel{background:linear-gradient(180deg, rgba(6,12,20,0.6), rgba(10,18,28,0.6));padding:22px;border-radius:12px;border:1px solid rgba(159,225,255,0.07);min-width:420px;backdrop-filter: blur(4px)}
+    .panel h1{margin:0 0 8px 0;color:var(--accent);font-size:34px}
+    .panel p{color:#c9dbe6;margin:8px 0 0 0}
+
+    .typebar{position:relative;margin-top:18px;display:flex;gap:8px}
+    #typed{flex:1;padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:rgba(0,8,12,0.5);color:#e9fbff;font-size:18px}
+    button{background:linear-gradient(90deg,#7bd1ff,#4fa8ea);border:none;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-family:'Cinzel',serif}
+    .muted{color:#9fb3c2;font-size:13px}
+    .word-hit{position:absolute;transform:translate(-50%,-50%);font-weight:900;color:var(--accent);text-shadow:0 6px 30px rgba(0,0,0,.7);font-family:'Cinzel',serif}
+
+    header .title-block{display:flex;flex-direction:column}
+    header .title-block .sub{color:var(--muted);font-size:13px}
+    .logo img{width:100%;height:100%;object-fit:contain}
+
+    /* Leaderboard styles */
+    .leaderboard-screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(2,6,10,0.45),rgba(2,6,10,0.75));z-index:40}
+    .leaderboard-entry{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin:4px 0;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.03)}
+    .leaderboard-entry.rank-1{background:linear-gradient(90deg,rgba(255,215,0,0.1),rgba(255,215,0,0.05));border-color:rgba(255,215,0,0.2)}
+    .leaderboard-entry.rank-2{background:linear-gradient(90deg,rgba(192,192,192,0.08),rgba(192,192,192,0.04));border-color:rgba(192,192,192,0.15)}
+    .leaderboard-entry.rank-3{background:linear-gradient(90deg,rgba(205,127,50,0.08),rgba(205,127,50,0.04));border-color:rgba(205,127,50,0.15)}
+    .leaderboard-rank{font-weight:700;color:var(--accent);min-width:30px}
+    .leaderboard-score{font-weight:700;color:#e9fbff}
+    .leaderboard-time{color:var(--muted);font-size:12px}
+
+    @media (max-width:720px){.wrap{padding:8px}.game-area{height:560px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo"><img src="C:\Users\ASUS\Downloads\expo\WhatsApp_Image_2025-10-10_at_21.34.44_70e1ffcd-removebg-preview.png" alt="Club Logo"></div>
+      <div class="title-block">
+        <h2>Defend the Code Keep</h2>
+        <div class="sub">HackaThrone - Code is Coming </div>
+      </div>
+    </header>
+
+    <main class="game-area" id="gameArea">
+      <div class="bg"></div>
+      <div class="frost"></div>
+      <div class="mist"></div>
+
+      <div class="hud">
+        <div class="card">Honor Points<br><strong id="score">0</strong></div>
+        <div class="card">Health<br><strong id="health">5</strong></div>
+        <div class="card">Combo<br><strong id="combo">0</strong></div>
+      </div>
+
+      <div class="bugs-layer" id="bugsLayer"></div>
+
+      <div class="castle"><div class="bar"><div class="fill" id="castleFill" style="width:100%"></div></div></div>
+
+      <div class="start-screen" id="startScreen">
+        <div class="panel">
+          <h1>In the Realm of Hackathron</h1>
+          <p>"Whispers of corrupted code echo through the Wall. The White Bugs march south — ready to breach the Keep."</p>
+          <p class="muted">You, Coder of the Realm, must defend the throne with your words.</p>
+          <div class="typebar">
+            <button id="startBtn">Start the Battle</button>
+            <button id="showLeaderboardStart">Leaderboard</button>
+            <div style="flex:1"></div>
+            <div class="muted">Press ENTER to start • ESC to pause</div>
+          </div>
+          <div style="margin-top:12px" class="muted">Music will play after you start (click to enable audio).</div>
+        </div>
+      </div>
+
+      <div class="end-screen" id="endScreen" style="display:none">
+        <div class="panel" id="endPanel">
+          <h1 id="endTitle">Time!</h1>
+          <div id="endText">You defended the keep.</div>
+          <div id="nameInputSection" style="margin-top:16px;display:none">
+            <input type="text" id="playerName" placeholder="Enter your name..." style="width:100%;padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,8,12,0.5);color:#e9fbff;font-size:16px;margin-bottom:12px">
+            <div style="display:flex;gap:8px;justify-content:center">
+              <button id="saveScoreWithName">Save Score</button>
+              <button id="cancelSave">Cancel</button>
+            </div>
+          </div>
+          <div id="endButtons" style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+            <button id="retry">Play Again</button>
+            <button id="saveScore">Save Score</button>
+            <button id="showLeaderboard">Leaderboard</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="leaderboard-screen" id="leaderboardScreen" style="display:none">
+        <div class="panel">
+          <h1>Hall of Honor</h1>
+          <div id="leaderboardList" style="margin:16px 0;max-height:300px;overflow-y:auto">
+            <!-- Leaderboard entries will be populated here -->
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+            <button id="closeLeaderboard">Back to Game</button>
+            <button id="clearLeaderboard">Clear Scores</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:absolute;bottom:150px;left:50%;transform:translateX(-50%);z-index:36">
+        <input id="typed" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type here to attack...">
+      </div>
+
+      <!-- audio: placeholder - will play when user clicks Start -->
+      <audio id="bgMusic" loop preload="auto">
+        <!-- You can replace the src with your chosen royalty-free medieval track URL -->
+        <source src="" type="audio/mpeg">
+      </audio>
+
+    </main>
+  </div>
+
+  <script>
+    // --- GoT word sets ---
+    const WORDS_GOT = [
+      "winter","stark","targaryen","dragon","throne","snow","raven","lannister","wildfire","sword","night","king","wall","wolf","khaleesi","realm","oath","crow","blade","frost","valar","morghulis","dracarys","fire","blood","casterly","pyke","robin","samwell","jon","cersei","arya","bran","tyrion"
+    ];
+
+    // --- elements ---
+    const gameArea = document.getElementById('gameArea');
+    const bugsLayer = document.getElementById('bugsLayer');
+    const typedInput = document.getElementById('typed');
+    const startScreen = document.getElementById('startScreen');
+    const startBtn = document.getElementById('startBtn');
+    const scoreEl = document.getElementById('score');
+    const healthEl = document.getElementById('health');
+    const comboEl = document.getElementById('combo');
+    const endScreen = document.getElementById('endScreen');
+    const endTitle = document.getElementById('endTitle');
+    const endText = document.getElementById('endText');
+    const retryBtn = document.getElementById('retry');
+    const bgMusic = document.getElementById('bgMusic');
+    const castleFill = document.getElementById('castleFill');
+    const saveScoreBtn = document.getElementById('saveScore');
+    const showLeaderboardBtn = document.getElementById('showLeaderboard');
+    const showLeaderboardStartBtn = document.getElementById('showLeaderboardStart');
+    const leaderboardScreen = document.getElementById('leaderboardScreen');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const closeLeaderboardBtn = document.getElementById('closeLeaderboard');
+    const clearLeaderboardBtn = document.getElementById('clearLeaderboard');
+    const nameInputSection = document.getElementById('nameInputSection');
+    const playerNameInput = document.getElementById('playerName');
+    const saveScoreWithNameBtn = document.getElementById('saveScoreWithName');
+    const cancelSaveBtn = document.getElementById('cancelSave');
+    const endButtons = document.getElementById('endButtons');
+
+    // --- state ---
+    let gameState = 'idle'; // idle, running, paused, ended
+    let bugs = [];
+    let score = 0; let health = 5; let combo = 0;
+    let spawnInterval = 1000; let lastSpawn = 0; let lastFrame = 0; let elapsed = 0; let startTime = 0;
+
+    function rand(min,max){return Math.random()*(max-min)+min}
+
+    function pickWord(level){
+      // choose from GOT words; longer words as level increases
+      const pool = WORDS_GOT;
+      let w = pool[Math.floor(Math.random()*pool.length)];
+      // occasionally create multi-word like 'valar morghulis'
+      if(Math.random()<0.04) w = (pool[Math.floor(Math.random()*pool.length)]) + ' ' + (pool[Math.floor(Math.random()*pool.length)]);
+      return w;
+    }
+
+    function spawnBug(level=1){
+      // Use game area width instead of window width to ensure words stay within bounds
+      const gameWidth = gameArea.clientWidth;
+      const x = rand(20, gameWidth - 200); // Reduced margins to keep words visible
+      const t = Math.random();
+      let word, type, hp=1, speed;
+      word = pickWord(level);
+      // Start much slower and increase gradually
+      if(t<0.6){ type='common'; hp=1; speed=rand(15,25)+(level*2); }
+      else if(t<0.9){ type='syntax'; hp=1; speed=rand(20,30)+(level*3); }
+      else { type='mem'; hp=2; speed=rand(18,28)+(level*3); }
+
+      const el = document.createElement('div');
+      el.className = 'bug '+type;
+      el.style.left = x+'px';
+      el.style.top = '-60px';
+      el.textContent = word;
+      el.dataset.word = word;
+      el.dataset.hp = hp;
+      el.dataset.type = type;
+      el.dataset.y = -60;
+      el.style.pointerEvents = 'none';
+
+      bugsLayer.appendChild(el);
+      bugs.push({el,word,hp,speed});
+    }
+
+    function update(delta){
+      // Much slower level progression - level increases every 30 seconds instead of 10
+      const level = Math.floor(elapsed/5)+1;
+      // Start with slower spawn rate and increase more gradually
+      spawnInterval = Math.max(800, 2000 - (level*50));
+      if(Date.now()-lastSpawn>spawnInterval){ spawnBug(level); lastSpawn=Date.now(); }
+
+      for(let i=bugs.length-1;i>=0;i--){
+        const b = bugs[i];
+        b.el.dataset.y = +b.el.dataset.y + b.speed*delta/1000;
+        b.el.style.top = b.el.dataset.y + 'px';
+        const bottomY = gameArea.clientHeight - 140;
+        if(+b.el.dataset.y > bottomY){
+          if(b.el.parentNode) b.el.parentNode.removeChild(b.el);
+          bugs.splice(i,1);
+          health -= 1; combo = 0; updateHUD(); checkGameOver();
+        }
+      }
+    }
+
+    function updateHUD(){ scoreEl.textContent = score; healthEl.textContent = health; comboEl.textContent = combo; castleFill.style.width = (health/5*100) + '%'; }
+
+    function checkGameOver(){ if(health<=0){ endGame(false); }}
+
+    function endGame(won){ gameState='ended'; endScreen.style.display='flex'; endTitle.textContent = won ? 'You Claimed the Iron Throne!' : 'The Wall has fallen...'; endText.innerHTML = `Honor Points: <strong>${score}</strong><br>Time Survived: <strong>${Math.floor(elapsed)}s</strong>`; typedInput.blur(); if(!bgMusic.paused) bgMusic.pause(); }
+
+    // --- Leaderboard functionality ---
+    function getLeaderboard(){
+      const stored = localStorage.getItem('hackathrone_leaderboard');
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveToLeaderboard(score, time, name = 'Anonymous'){
+      const leaderboard = getLeaderboard();
+      const newEntry = {
+        name: name.trim() || 'Anonymous',
+        score: score,
+        time: Math.floor(time),
+        date: new Date().toLocaleDateString()
+      };
+      leaderboard.push(newEntry);
+      leaderboard.sort((a, b) => b.score - a.score);
+      // Keep only top 10 scores
+      const topScores = leaderboard.slice(0, 10);
+      localStorage.setItem('hackathrone_leaderboard', JSON.stringify(topScores));
+      return topScores;
+    }
+
+    function displayLeaderboard(){
+      const leaderboard = getLeaderboard();
+      leaderboardList.innerHTML = '';
+      
+      if(leaderboard.length === 0){
+        leaderboardList.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px">No scores yet. Be the first to claim the throne!</div>';
+        return;
+      }
+
+      leaderboard.forEach((entry, index) => {
+        const entryEl = document.createElement('div');
+        entryEl.className = `leaderboard-entry rank-${index < 3 ? index + 1 : ''}`;
+        entryEl.innerHTML = `
+          <div class="leaderboard-rank">#${index + 1}</div>
+          <div style="flex:1;margin:0 12px">
+            <div class="leaderboard-score">${entry.name} - ${entry.score} points</div>
+            <div class="leaderboard-time">${entry.time}s • ${entry.date}</div>
+          </div>
+        `;
+        leaderboardList.appendChild(entryEl);
+      });
+    }
+
+    function showLeaderboard(){
+      displayLeaderboard();
+      leaderboardScreen.style.display = 'flex';
+      startScreen.style.display = 'none';
+      endScreen.style.display = 'none';
+    }
+
+    function hideLeaderboard(){
+      leaderboardScreen.style.display = 'none';
+    }
+
+    function clearBugs(){ for(const b of bugs){ if(b.el.parentNode) b.el.parentNode.removeChild(b.el); } bugs=[]; }
+
+    function resetGame(){ clearBugs(); score=0; health=5; combo=0; elapsed=0; spawnInterval=1000; lastSpawn=0; updateHUD(); }
+
+    function startGame(){ resetGame(); startScreen.style.display='none'; endScreen.style.display='none'; gameState='running'; startTime = Date.now(); lastFrame = Date.now(); typedInput.value=''; typedInput.focus(); // try play music if src set
+      if(bgMusic.src){ const p = bgMusic.play(); if(p && p.catch) p.catch(()=>{/* autoplay blocked */}); }
+    }
+
+    function gameLoop(){ if(gameState!=='running') return; const now = Date.now(); const delta = now-lastFrame; lastFrame = now; elapsed = (now-startTime)/1000; update(delta); requestAnimationFrame(gameLoop); }
+
+    // typing handler
+    typedInput.addEventListener('input', ()=>{
+      const val = typedInput.value.trim(); if(!val) return;
+      // match full words (prioritize exact match)
+      let matchedIndex = -1; let matchedFull=false;
+      for(let i=0;i<bugs.length;i++){
+        if(bugs[i].word === val){ matchedIndex=i; matchedFull=true; break; }
+      }
+      if(matchedFull){ const b = bugs[matchedIndex]; b.hp -= 1; b.el.dataset.hp = b.hp; if(b.hp<=0){ const rect = b.el.getBoundingClientRect(); spawnHitText(rect.left + b.el.offsetWidth/2, rect.top, '+'+10*(1+Math.floor(combo/5))); if(b.el.parentNode) b.el.parentNode.removeChild(b.el); bugs.splice(matchedIndex,1); score += 10*(1+Math.floor(combo/5)); combo += 1; } else { const rect = b.el.getBoundingClientRect(); spawnHitText(rect.left + b.el.offsetWidth/2, rect.top, 'hit'); combo = 0; } typedInput.value=''; updateHUD(); }
+    });
+
+    function spawnHitText(x,y,text){ const t = document.createElement('div'); t.className='word-hit'; t.style.left = x+'px'; t.style.top = y+'px'; t.textContent = text; document.body.appendChild(t); setTimeout(()=>{ t.style.transition='all 700ms ease'; t.style.transform='translate(-50%,-120%)'; t.style.opacity='0'; },30); setTimeout(()=>{ if(t.parentNode) t.parentNode.removeChild(t); },900); }
+
+    // controls
+    startBtn.addEventListener('click', ()=>{ startGame(); requestAnimationFrame(gameLoop); });
+    document.addEventListener('keydown',(e)=>{
+      if(e.key==='Enter' && gameState!=='running'){ startGame(); requestAnimationFrame(gameLoop); }
+      if(e.key==='Escape'){ if(gameState==='running'){ gameState='paused'; typedInput.blur(); startScreen.style.display='flex'; startScreen.querySelector('p').textContent='Paused — press ENTER to resume.'; } else if(gameState==='paused'){ startScreen.style.display='none'; gameState='running'; lastFrame = Date.now(); startTime += Date.now()-lastFrame; requestAnimationFrame(gameLoop); }}
+    });
+
+    retryBtn.addEventListener('click', ()=>{ startGame(); requestAnimationFrame(gameLoop); });
+
+    // Leaderboard event listeners
+    saveScoreBtn.addEventListener('click', ()=>{
+      nameInputSection.style.display = 'block';
+      endButtons.style.display = 'none';
+      playerNameInput.focus();
+    });
+
+    saveScoreWithNameBtn.addEventListener('click', ()=>{
+      const name = playerNameInput.value.trim();
+      saveToLeaderboard(score, elapsed, name);
+      nameInputSection.style.display = 'none';
+      endButtons.style.display = 'flex';
+      playerNameInput.value = '';
+      alert('Score saved to leaderboard!');
+    });
+
+    cancelSaveBtn.addEventListener('click', ()=>{
+      nameInputSection.style.display = 'none';
+      endButtons.style.display = 'flex';
+      playerNameInput.value = '';
+    });
+
+    // Allow Enter key to save score
+    playerNameInput.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        saveScoreWithNameBtn.click();
+      }
+    });
+
+    showLeaderboardBtn.addEventListener('click', showLeaderboard);
+    showLeaderboardStartBtn.addEventListener('click', showLeaderboard);
+    closeLeaderboardBtn.addEventListener('click', ()=>{
+      hideLeaderboard();
+      if(gameState === 'ended'){
+        endScreen.style.display = 'flex';
+      } else {
+        startScreen.style.display = 'flex';
+      }
+    });
+
+    clearLeaderboardBtn.addEventListener('click', ()=>{
+      if(confirm('Are you sure you want to clear all scores? This cannot be undone.')){
+        localStorage.removeItem('hackathrone_leaderboard');
+        displayLeaderboard();
+      }
+    });
+
+    // pause on blur
+    window.addEventListener('blur', ()=>{ if(gameState==='running'){ gameState='paused'; startScreen.style.display='flex'; startScreen.querySelector('p').textContent='Paused — window lost focus. Press ENTER to resume.'; }});
+    gameArea.addEventListener('click', ()=>{ if(gameState==='running') typedInput.focus(); });
+
+    // initial HUD
+    updateHUD();
+
+  </script>
+</body>
+</html>
