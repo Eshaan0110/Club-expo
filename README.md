@@ -1,4 +1,4 @@
-# Club Expo — HackaThrone 🏰
+# Club Expo — HackaThrone 
 
 A Game of Thrones-themed interactive web experience built for a club expo event. Features two standalone browser-based mini-games that run entirely without a backend.
 
@@ -23,14 +23,14 @@ A Game of Thrones-themed interactive web experience built for a club expo event.
 
 ## Games
 
-### 🗡️ Defend the Code Keep (`expo.html`)
+### Defend the Code Keep (`expo.html`)
 A typing arcade game set against a dark medieval backdrop. Bug-labeled words fall from the top of the screen; players type them to destroy the bugs before they breach the castle walls. Includes a HUD with score tracking and a leaderboard to compare results.
 
 - **Theme:** *HackaThrone — Code is Coming*
 - **Mechanic:** Type the displayed word correctly to eliminate it
 - **Features:** Score counter, castle health bar, leaderboard, animated hit effects
 
-### 👑 Claim the Throne (`Quiz.html`)
+### Claim the Throne (`Quiz.html`)
 A 10-question timed quiz styled after the Red Keep. Each question has a 15-second countdown timer and 4 answer choices. A title is awarded at the end based on the player's final score.
 
 - **Theme:** *The Red Keep Trial*
