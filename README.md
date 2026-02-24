@@ -4,6 +4,13 @@ A Game of Thrones-themed interactive web experience built for a club expo event.
 
 ---
 
+## Screenshots
+
+![Defend the Code Keep](screenshots/expo.png)
+![Claim the Throne](screenshots/quiz.png)
+
+---
+
 ## Contents
 
 | File | Description |
